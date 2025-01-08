@@ -7,7 +7,7 @@
 # See the License for the specific language governing permissions and limitations under the License.
 
 import codecs
-from typing import List, Iterator, Optional
+from typing import Iterator, Optional
 
 import idc
 import idaapi
@@ -30,17 +30,17 @@ def info_to_name(display):
 
 def ea_to_hex(ea):
     """convert effective address (ea) to hex for display"""
-    return "%08X" % ea
+    return f"{hex(ea)}"
 
 
 class CapaExplorerDataItem:
     """store data for CapaExplorerDataModel"""
 
-    def __init__(self, parent: Optional["CapaExplorerDataItem"], data: List[str], can_check=True):
+    def __init__(self, parent: Optional["CapaExplorerDataItem"], data: list[str], can_check=True):
         """initialize item"""
         self.pred = parent
         self._data = data
-        self._children: List["CapaExplorerDataItem"] = []
+        self._children: list["CapaExplorerDataItem"] = []
         self._checked = False
         self._can_check = can_check
 
@@ -130,8 +130,7 @@ class CapaExplorerDataItem:
 
     def children(self) -> Iterator["CapaExplorerDataItem"]:
         """yield children"""
-        for child in self._children:
-            yield child
+        yield from self._children
 
     def removeChildren(self):
         """remove children"""

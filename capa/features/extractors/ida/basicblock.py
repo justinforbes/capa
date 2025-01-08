@@ -8,7 +8,7 @@
 
 import string
 import struct
-from typing import Tuple, Iterator
+from typing import Iterator
 
 import idaapi
 
@@ -34,7 +34,7 @@ def get_printable_len(op: idaapi.op_t) -> int:
     elif op.dtype == idaapi.dt_qword:
         chars = struct.pack("<Q", op_val)
     else:
-        raise ValueError("Unhandled operand data type 0x%x." % op.dtype)
+        raise ValueError(f"Unhandled operand data type 0x{op.dtype:x}.")
 
     def is_printable_ascii(chars_: bytes):
         return all(c < 127 and chr(c) in string.printable for c in chars_)
@@ -80,22 +80,22 @@ def bb_contains_stackstring(f: idaapi.func_t, bb: idaapi.BasicBlock) -> bool:
     return False
 
 
-def extract_bb_stackstring(fh: FunctionHandle, bbh: BBHandle) -> Iterator[Tuple[Feature, Address]]:
+def extract_bb_stackstring(fh: FunctionHandle, bbh: BBHandle) -> Iterator[tuple[Feature, Address]]:
     """extract stackstring indicators from basic block"""
     if bb_contains_stackstring(fh.inner, bbh.inner):
         yield Characteristic("stack string"), bbh.address
 
 
-def extract_bb_tight_loop(fh: FunctionHandle, bbh: BBHandle) -> Iterator[Tuple[Feature, Address]]:
+def extract_bb_tight_loop(fh: FunctionHandle, bbh: BBHandle) -> Iterator[tuple[Feature, Address]]:
     """extract tight loop indicators from a basic block"""
     if capa.features.extractors.ida.helpers.is_basic_block_tight_loop(bbh.inner):
         yield Characteristic("tight loop"), bbh.address
 
 
-def extract_features(fh: FunctionHandle, bbh: BBHandle) -> Iterator[Tuple[Feature, Address]]:
+def extract_features(fh: FunctionHandle, bbh: BBHandle) -> Iterator[tuple[Feature, Address]]:
     """extract basic block features"""
     for bb_handler in BASIC_BLOCK_HANDLERS:
-        for (feature, addr) in bb_handler(fh, bbh):
+        for feature, addr in bb_handler(fh, bbh):
             yield feature, addr
     yield BasicBlock(), bbh.address
 
@@ -104,19 +104,3 @@ BASIC_BLOCK_HANDLERS = (
     extract_bb_tight_loop,
     extract_bb_stackstring,
 )
-
-
-def main():
-    features = []
-    for fhandle in helpers.get_functions(skip_thunks=True, skip_libs=True):
-        f: idaapi.func_t = fhandle.inner
-        for bb in idaapi.FlowChart(f, flags=idaapi.FC_PREDS):
-            features.extend(list(extract_features(fhandle, bb)))
-
-    import pprint
-
-    pprint.pprint(features)
-
-
-if __name__ == "__main__":
-    main()

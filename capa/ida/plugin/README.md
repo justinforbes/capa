@@ -44,8 +44,12 @@ You can install capa explorer using the following steps:
    1. Use the following command to view the version of capa you have installed:
    ```commandline
     $ pip show flare-capa
+    OR
+    $ capa --version
     ```
 3. Copy [capa_explorer.py](https://raw.githubusercontent.com/mandiant/capa/master/capa/ida/plugin/capa_explorer.py) to your IDA plugins directory
+   - find your plugin directories via `idaapi.get_ida_subdirs("plugins")` or see this [Hex-Rays blog](https://hex-rays.com/blog/igors-tip-of-the-week-103-sharing-plugins-between-ida-installs/)
+   - common paths are `%APPDATA%\Hex-Rays\IDA Pro\plugins` (Windows) or `$HOME/.idapro/plugins` on Linux/Mac
 
 ### Supported File Types
 
@@ -70,12 +74,14 @@ can update using the `Settings` button.
 #### Tips for Program Analysis
 
 * Start analysis by clicking the `Analyze` button
+  * capa explorer caches results to the database and reuses them across IDA sessions 
 * Reset the plugin user interface and remove highlighting from your Disassembly view by clicking the `Reset` button
-* Change your local capa rules directory and other default settings by clicking the `Settings` button
+* Change your local capa rules directory, auto analysis settings, and other default settings by clicking the `Settings` button
 * Hover your cursor over a rule match to view the source content of the rule
 * Double-click the `Address` column to navigate your Disassembly view to the address of the associated feature
 * Double-click a result in the `Rule Information` column to expand its children
 * Select a checkbox in the `Rule Information` column to highlight the address of the associated feature in your Disassembly view
+* Reanalyze if you renamed global variables that store dynamically resolved APIs. capa will use these to improve its analysis.
 
 #### Tips for Rule Generator
 
@@ -90,7 +96,7 @@ can update using the `Settings` button.
 
 ### Requirements
 
-capa explorer supports Python versions >= 3.7.x and IDA Pro versions >= 7.4. The following IDA Pro versions have been tested:
+capa explorer supports Python versions >= 3.10 and IDA Pro versions >= 7.4. The following IDA Pro versions have been tested:
 
 * IDA 7.4
 * IDA 7.5
@@ -99,8 +105,9 @@ capa explorer supports Python versions >= 3.7.x and IDA Pro versions >= 7.4. The
 * IDA 8.0
 * IDA 8.1
 * IDA 8.2
+* IDA 9.0
 
-capa explorer is however limited to the Python versions supported by your IDA installation (which may not include all Python versions >= 3.7.x).
+capa explorer is however limited to the Python versions supported by your IDA installation (which may not include all Python versions >= 3.10).
 
 If you encounter issues with your specific setup, please open a new [Issue](https://github.com/mandiant/capa/issues).
 
