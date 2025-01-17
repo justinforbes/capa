@@ -1,10 +1,17 @@
-# Copyright (C) 2020 Mandiant, Inc. All Rights Reserved.
+# Copyright 2020 Google LLC
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
-#  you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at: [package root]/LICENSE.txt
-# Unless required by applicable law or agreed to in writing, software distributed under the License
-#  is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and limitations under the License.
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import logging
 
 import idaapi
@@ -17,7 +24,6 @@ logger = logging.getLogger(__name__)
 
 
 class CapaExplorerPlugin(idaapi.plugin_t):
-
     # Mandatory definitions
     PLUGIN_NAME = "FLARE capa explorer"
     PLUGIN_VERSION = "1.0.0"
@@ -38,6 +44,12 @@ class CapaExplorerPlugin(idaapi.plugin_t):
     def init(self):
         """called when IDA is loading the plugin"""
         logging.basicConfig(level=logging.INFO)
+
+        # do not load plugin unless hosted in idaq (IDA Qt)
+        if not idaapi.is_idaq():
+            # note: it does not appear that IDA calls "init" by default when hosted in idat; we keep this
+            # check here for good measure
+            return idaapi.PLUGIN_SKIP
 
         import capa.ida.helpers
 
@@ -62,7 +74,16 @@ class CapaExplorerPlugin(idaapi.plugin_t):
           arg (int): bitflag. Setting LSB enables automatic analysis upon
           loading. The other bits are currently undefined. See `form.Options`.
         """
-        self.form = CapaExplorerForm(self.PLUGIN_NAME, arg)
+        if not self.form:
+            self.form = CapaExplorerForm(self.PLUGIN_NAME, arg)
+        else:
+            widget = idaapi.find_widget(self.form.form_title)
+            if widget:
+                idaapi.activate_widget(widget, True)
+            else:
+                self.form.Show()
+                self.form.load_capa_results(False, True)
+
         return True
 
 
@@ -111,7 +132,7 @@ def install_icon():
         return False
 
     # resource leak here. need to call `ida_kernwin.free_custom_icon`?
-    # however, since we're not cycling this icon a lot, its probably ok.
+    # however, since we're not cycling this icon a lot, it's probably ok.
     # expect to leak exactly one icon per application load.
     icon = ida_kernwin.load_custom_icon(data=ICON)
 
